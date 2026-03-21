@@ -3,7 +3,7 @@ import axios from "axios";
 import { useParams } from "react-router-dom"; // ✅ Added to catch IDs from URL
 import { UserContext } from "../context/UserContext";
 import { URL } from "../url";
-
+import Navbar from "../components/Navbar";
 
 
 function PostDetails({ postId: propPostId }) {
@@ -100,6 +100,8 @@ function PostDetails({ postId: propPostId }) {
   if (authLoading) return <div className="text-center py-10 text-gray-400">Verifying credentials...</div>;
 
   return (
+    <div>
+      <Navbar/>
     <div className="w-full max-w-2xl mx-auto mt-10 p-4 border-t border-gray-100">
       <div className="flex justify-between items-center mb-6">
         <h3 className="font-bold text-lg text-gray-800">Discussion ({comments.length})</h3>
@@ -178,7 +180,7 @@ function PostDetails({ postId: propPostId }) {
         )}
       </div>
     </div>
-  );
+  </div>);
 }
 
 export default PostDetails;
