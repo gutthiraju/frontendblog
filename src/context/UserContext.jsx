@@ -13,12 +13,11 @@ export const UserProvider = ({ children }) => {
 
     if (storedUser && storedToken) {
       try {
-        // Parse the JSON user object back into a JS object
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
         setToken(storedToken);
       } catch (err) {
-        console.error("Error parsing user from localStorage:", err);
-        // If data is corrupted, clear it
+        console.error("Session corrupted, clearing storage:", err);
         localStorage.removeItem("user");
         localStorage.removeItem("token");
       }
@@ -26,17 +25,28 @@ export const UserProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // ✅ Added: Centralized Logout function
+  // 1. Enhanced Logout: Clear everything
   const logout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     setUser(null);
     setToken(null);
+    // Optional: Redirect to login or home
+    window.location.href = "/login"; 
   };
 
   return (
-    <UserContext.Provider value={{ user, setUser, token, setToken, loading, logout }}>
-      {children}
+    <UserContext.Provider value={{ 
+      user, 
+      setUser, 
+      token, 
+      setToken, 
+      loading, 
+      logout,
+      authenticated: !!token // Quick helper to check if logged in
+    }}>
+      {/* 2. Important: Don't render the app until we know if a user is logged in */}
+      {!loading && children}
     </UserContext.Provider>
   );
 };
