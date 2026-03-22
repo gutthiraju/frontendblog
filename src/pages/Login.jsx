@@ -15,6 +15,7 @@ function Login() {
   const { setUser, setToken } = useContext(UserContext);
 
   const handleLogin = async () => {
+    // 1. Basic Validation
     if (!email || !password) {
       setError("Please enter both email and password");
       return;
@@ -24,39 +25,52 @@ function Login() {
     setLoading(true);
 
     try {
-     const res = await axios.post(
-  `${URL}/api/auth/login`, // ✅ Proxy handles this for both Local and Live
-  { email, password },
-  { withCredentials: true }
-);
+      // 2. API Call
+      const res = await axios.post(
+        `${URL}/api/auth/login`,
+        { email, password },
+        { withCredentials: true }
+      );
 
-      if (res?.data?.token) {
-        // 1. Persistence: Save to LocalStorage
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("user", JSON.stringify(res.data.user));
+      // 3. Success Handling
+      if (res.data) {
+        // Get user and token from response (adjust based on your backend structure)
+        const userData = res.data.user || res.data;
+        const userToken = res.data.token;
 
-        // 2. Immediate UI update: Update Context
-        setUser(res.data.user);
-        setToken(res.data.token);
+        // Save to LocalStorage so the session survives page refreshes
+        localStorage.setItem("token", userToken);
+        localStorage.setItem("user", JSON.stringify(userData));
 
-        // 3. Success! Go home
+        // Update Global Context
+        setUser(userData);
+        setToken(userToken);
+
+        // Redirect to Home
         navigate("/"); 
-      } else {
-        setError("Login failed. No token received.");
       }
     } catch (err) {
-      console.error("Login failed:", err.response?.data || err.message);
-      setError(
-        err.response?.data?.message || 
-        err.response?.data || 
-        "Invalid email or password"
-      );
+      // 4. 🔥 THE FIX: Prevent React Error #31
+      // We extract ONLY the error string. We never pass the whole 'err' object to setError.
+      const errorData = err.response?.data;
+      let errorMessage = "Invalid email or password"; // Default fallback
+
+      if (typeof errorData === 'string') {
+        errorMessage = errorData;
+      } else if (errorData?.error && typeof errorData.error === 'string') {
+        errorMessage = errorData.error;
+      } else if (errorData?.message && typeof errorData.message === 'string') {
+        errorMessage = errorData.message;
+      }
+
+      setError(errorMessage);
+      console.error("Login failed:", errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ PRO-TIP: Allow user to press "Enter" to login
+  // Allow user to press "Enter" to login
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       handleLogin();
@@ -65,6 +79,7 @@ function Login() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Header/Navbar */}
       <div className="flex items-center justify-between px-6 md:px-[200px] py-4 bg-white shadow-sm">
         <h1 className="text-xl font-extrabold tracking-tight">
           <Link to="/">BLOGOSPHERE</Link>
@@ -72,6 +87,7 @@ function Login() {
         <Link to="/register" className="text-sm font-medium hover:text-blue-600 transition">Register</Link>
       </div>
 
+      {/* Login Card */}
       <div className="flex-grow flex justify-center items-center p-4">
         <div className="flex flex-col w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
           <h1 className="text-2xl font-bold mb-2">Welcome Back</h1>
@@ -111,6 +127,7 @@ function Login() {
             </button>
           </div>
 
+          {/* Error Message Display */}
           {error && (
             <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-lg">
               <p className="text-red-600 text-xs text-center font-semibold">{error}</p>

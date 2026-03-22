@@ -22,103 +22,115 @@ function Register() {
     setLoading(true);
 
     try {
-      console.log("Sending:", { username, email, password });
+      const res = await axios.post(
+        `${URL}/api/auth/register`,
+        { username, email, password },
+        { withCredentials: true }
+      );
 
-     const res = await axios.post(
-  `${URL}/api/auth/register`, // ✅ Start with /api/ to use your proxy/vercel.json
-  { username, email, password },
-  { withCredentials: true }
-);
-
-      if (res?.data?.user?._id) {
-        // Clear form
+      // Check if the response exists. If your backend returns the user object, 
+      // check for res.data._id or simply if res.data exists.
+      if (res.data) {
         setUsername("");
         setEmail("");
         setPassword("");
-        // Redirect to login page
         navigate("/login");
-      } else {
-        setError("Registration failed. Please try again.");
       }
     } catch (err) {
       console.error("Register error:", err.response?.data || err.message);
-      setError(
-        err.response?.data?.error ||
-        err.response?.data?.message ||
-        "Something went wrong"
-      );
+      
+      // 🔥 CRASH PREVENTION: Extract only the string message
+      const errorData = err.response?.data;
+      let errorMessage = "Registration failed. Try again.";
+
+      if (typeof errorData === 'string') {
+        errorMessage = errorData;
+      } else if (errorData?.error && typeof errorData.error === 'string') {
+        errorMessage = errorData.error;
+      } else if (errorData?.message && typeof errorData.message === 'string') {
+        errorMessage = errorData.message;
+      }
+
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 md:px-[200px] py-4">
-        <h1 className="text-lg md:text-xl">
-          <Link to="/">Blogosphere</Link>
+      <div className="flex items-center justify-between px-6 md:px-[200px] py-4 bg-white shadow-sm">
+        <h1 className="text-xl font-extrabold tracking-tight">
+          <Link to="/">BLOGOSPHERE</Link>
         </h1>
-        <h3>
-          <Link to="/login">Login</Link>
-        </h3>
+        <Link to="/login" className="text-sm font-medium hover:text-blue-600 transition">Login</Link>
       </div>
 
       {/* Registration Form */}
-      <div className="flex-grow flex justify-center items-center bg-gray-100">
-        <div className="flex flex-col justify-center items-center space-y-4 w-[80%] md:w-[25%] bg-white p-6 rounded-lg shadow-lg">
-          <h1 className="text-xl font-bold text-left w-full">Create an Account</h1>
+      <div className="flex-grow flex justify-center items-center p-4">
+        <div className="flex flex-col w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
+          <h1 className="text-2xl font-bold mb-2">Create an Account</h1>
+          <p className="text-gray-500 mb-8 text-sm">Join our community of writers and readers</p>
 
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Enter your name"
-            className="w-full px-4 py-2 border border-gray-300 rounded outline-none"
-          />
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-bold uppercase text-gray-400 ml-1">Username</label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="johndoe"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-black transition-all"
+              />
+            </div>
 
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email"
-            className="w-full px-4 py-2 border border-gray-300 rounded outline-none"
-          />
+            <div>
+              <label className="text-xs font-bold uppercase text-gray-400 ml-1">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@company.com"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-black transition-all"
+              />
+            </div>
 
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"
-            className="w-full px-4 py-2 border border-gray-300 rounded outline-none"
-          />
+            <div>
+              <label className="text-xs font-bold uppercase text-gray-400 ml-1">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-black transition-all"
+              />
+            </div>
 
-          <button
-            onClick={handleRegister}
-            disabled={!username || !email || !password || loading}
-            className={`w-full px-4 py-3 text-lg font-bold text-white rounded-lg ${
-              loading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-black hover:bg-gray-700"
-            }`}
-          >
-            {loading ? "Registering..." : "Register"}
-          </button>
-
-          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-
-          <div className="flex justify-center items-center space-x-2 mt-2">
-            <p>Already have an account?</p>
-            <Link
-              to="/login"
-              className="text-black font-semibold hover:underline"
+            <button
+              onClick={handleRegister}
+              disabled={loading}
+              className={`w-full py-4 text-white font-bold rounded-xl shadow-lg transition-all transform active:scale-95 ${
+                loading ? "bg-gray-400 cursor-not-allowed" : "bg-black hover:bg-gray-800"
+              }`}
             >
-              Login
-            </Link>
+              {loading ? "Creating Account..." : "Register"}
+            </button>
+          </div>
+
+          {error && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-lg text-center">
+              <p className="text-red-600 text-xs font-semibold">{error}</p>
+            </div>
+          )}
+
+          <div className="mt-8 text-center">
+            <p className="text-gray-500 text-sm">
+              Already have an account? <Link to="/login" className="text-black font-bold hover:underline">Login</Link>
+            </p>
           </div>
         </div>
       </div>
-
       <Footer />
     </div>
   );
