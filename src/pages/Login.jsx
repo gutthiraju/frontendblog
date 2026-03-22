@@ -3,7 +3,7 @@ import axios from "axios";
 import Footer from "../components/Footer";
 import { Link, useNavigate } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
-// import { URL } from "../url";
+import { URL } from "../url";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -25,7 +25,7 @@ function Login() {
 
     try {
      const res = await axios.post(
-  "/api/auth/login", // ✅ Proxy handles this for both Local and Live
+  `${URL}/api/auth/login`, // ✅ Proxy handles this for both Local and Live
   { email, password },
   { withCredentials: true }
 );

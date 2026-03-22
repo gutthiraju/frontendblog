@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import Footer from "../components/Footer";
 import { Link, useNavigate } from "react-router-dom";
-// import { URL } from "../url";
+import { URL } from "../url";
 
 function Register() {
   const [username, setUsername] = useState("");
@@ -25,7 +25,7 @@ function Register() {
       console.log("Sending:", { username, email, password });
 
      const res = await axios.post(
-  `/api/auth/register`, // ✅ Start with /api/ to use your proxy/vercel.json
+  `${URL}/api/auth/register`, // ✅ Start with /api/ to use your proxy/vercel.json
   { username, email, password },
   { withCredentials: true }
 );

@@ -1,5 +1,9 @@
-// 1. Look for the Live URL in Environment Variables, otherwise use Localhost
-export const URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// This checks if the app is running on a live server or your laptop
+const isProduction = process.env.NODE_ENV === 'production';
 
-// 2. Base the Image Folder (IF) on the main URL so they both update together
+// If live, use Render. If local, use localhost.
+export const URL = isProduction 
+    ? 'https://blog-backend-mnap.onrender.com' 
+    : 'http://localhost:8000';
+
 export const IF = `${URL}/images`;
